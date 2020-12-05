@@ -1,0 +1,69 @@
+﻿@page "/Recursos/ListadoRecursos"
+
+@using BlazorApp1.Data
+@inject RecursoServicio RecursoServicio
+@inject UsuariosServicio UsuarioServicio
+@inject NavigationManager navigation
+@inject IJSRuntime JsRuntime
+
+
+<h1>Listado de Recursos</h1>
+
+<button class="btn btn-primary" @onclick="()=>Editar(0)">Nuevo</button>
+
+@if (recurso == null)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nombre</th>
+                <th>Usuarios</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var R in recurso)
+            {
+                <tr>
+                    <td>@R.Id</td>
+                    <td>@R.Nombre</td>
+                    <td>@R.Usuario.nombre</td>
+                    <td><button class="btn btn-success" @onclick="()=>Editar(R.Id)">Editar</button> <button class="btn btn-danger" @onclick="()=>Borrar(R.Id)">Borrar</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+
+private List<Recurso> recurso;
+
+
+protected override async Task OnInitializedAsync()
+{
+    recurso = await RecursoServicio.GetAllRecurso();
+
+}
+
+
+protected void Editar(int id)
+{
+    navigation.NavigateTo("/Recursos/EditarRecurso/" + id);
+}
+
+async Task Borrar(int id)
+{
+    bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", "¿eliminar recurso?");
+    if (confirmed)
+    {
+        await RecursosServicio.Remove(id);
+        recurso = await RecursosServicio.GetAllRecurso();
+    }
+}
+    

@@ -1,0 +1,58 @@
+﻿@page "/EditarTarea/{id:int}"
+
+@using BlazorApp1.Data
+@inject TareaServicio TareaServicio
+@inject RecursoServicio RecursoServicio
+@inject NavigationManager navigation
+
+
+<EditForm Model="@Tarea" OnValidSubmit="@Guardar">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <InputText @bind-Value="Tarea.Titulo" />
+    <InputText @bind-Value="Tarea.Vencimiento" />
+    <InputText @bind-Value="Tarea.Estimacion" />
+    <InputSelect @bind-Value="RecursoID">
+        <option value="0">Elegir un Recurso</option>
+        @foreach (var R in Recursos)
+        {
+            <option value="@R.Id">@R.Nombre</option>
+        }
+    </InputSelect>
+
+    <button type="submit">Guardar</button>
+</EditForm>
+
+
+@code {
+        [Parameter]
+        public int Id { get; set; }
+
+public Tarea Tarea { get; set; } = new Tarea();
+
+    public string RecursoID { get; set; }
+
+    private List<Recurso> Recursos = new List<Recurso>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id > 0)
+        {
+            Tarea = await TareaServicio.Get(Id);
+            RecursoID = Tarea.responsableId.ToString();
+        }
+        else
+        {
+            Tarea = new Tarea();
+        }
+        Recursos = await RecursoServicio.GetAllRecurso();
+    }
+
+
+    private async void Guardar()
+    {
+        Tarea.responsableId = int.Parse(RecursoID);
+        await TareaServicio.SaveTarea(Tarea);
+        navigation.NavigateTo("Tareas/ListadoTareas");
+    }
+}

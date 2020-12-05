@@ -1,0 +1,60 @@
+﻿@page "/listadosdeusuarios"
+@using BlazorApp1.Data
+@inject UsuariosServicio UsuarioServicio
+@inject NavigationManager navigation
+@inject IJSRuntime JsRuntime
+
+<h1>Listado de Usuarios</h1>
+
+<button class="btn btn-primary" @onclick="()=>Editar(0)">Nuevo</button>
+
+@if (usuarios == null)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nombre</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var U in usuarios)
+            {
+                <tr>
+                    <td>@U.Id</td>
+                    <td>@U.nombre</td>
+                    <td><button class="btn btn-success" @onclick="()=>Editar(U.Id)">Editar</button> <button class="btn btn-danger" @onclick="()=>Borrar(U.Id)">Borrar</button></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+
+private List<Usuario> usuarios;
+
+protected override async Task OnInitializedAsync()
+{
+    usuarios = await UsuariosServicio.GetAllUsuarios();
+
+}
+
+protected void Editar(int id)
+{
+    navigation.NavigateTo("/Usuarios/EditarUsuario/" + id);
+}
+
+async Task Borrar(int id)
+{
+    bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", "¿Desea eliminar usuario?");
+    if (confirmed)
+    {
+        await UsuarioServicio.Remove(id);
+        usuarios = await UsuariosServicio.GetAllUsuarios();
+    }
